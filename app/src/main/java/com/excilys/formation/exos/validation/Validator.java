@@ -1,11 +1,9 @@
-package com.excilys.formation.exos.task.validation;
+package com.excilys.formation.exos.validation;
 
 import com.excilys.formation.exos.activity.MainActivity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User inputs validation
