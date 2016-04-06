@@ -33,15 +33,29 @@ public class MenuActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
+        initButtons();
+        getExtras();
+        initConfirmDialog();
+    }
+
+    /**
+     * Initialize the buttons and set the listeners
+     */
+    private void initButtons() {
         drawButton = (Button) findViewById(R.id.draw_button);
         listButton = (Button) findViewById(R.id.list_button);
         sendButton = (Button) findViewById(R.id.send_button);
         drawButton.setOnClickListener(drawListener);
         listButton.setOnClickListener(listListener);
         sendButton.setOnClickListener(sendListener);
+    }
+
+    /**
+     * Get the extras from the intent
+     */
+    private void getExtras() {
         user = getIntent().getExtras().getString(MainActivity.USER_ID);
         pwd = getIntent().getExtras().getString(MainActivity.PWD_ID);
-        initConfirmDialog();
     }
 
     /**

@@ -20,7 +20,7 @@ import android.widget.Toast;
 import com.excilys.formation.exos.receiver.ParlezVousPowerReceiver;
 import com.excilys.formation.exos.task.ParlezVousTask;
 import com.excilys.formation.exos.R;
-import com.excilys.formation.exos.task.validation.Validator;
+import com.excilys.formation.exos.validation.Validator;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;

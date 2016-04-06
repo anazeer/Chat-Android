@@ -54,7 +54,7 @@ public class ParlezVousTask extends AsyncTask<String, String, String> {
                     ("http://formation-android-esaip.herokuapp.com/connect/%s/%s", user, pwd);
             URL url = new URL(urlText);
             conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
+            conn.setRequestMethod("POST");
             conn.setDoInput(true);
 
             // Start the query
