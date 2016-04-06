@@ -23,4 +23,7 @@
     <string name="confirm_title">Confirmer</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
+    <string name="register">Inscription</string>
+    <string name="register_success">Inscription réussie !</string>
+    <string name="register_fail">Echec de l\'inscription</string>
 </resources>

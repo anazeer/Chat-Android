@@ -8,7 +8,7 @@ import android.widget.Toast;
 /**
  * Receiver for action power and sms
  */
-public class ParlezVousPowerReceiver extends BroadcastReceiver {
+public class PowerReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

@@ -4,27 +4,31 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 
-import com.excilys.formation.exos.mapper.InputStreamToString;
 import com.excilys.formation.exos.R;
-import com.excilys.formation.exos.activity.ListActivity;
+import com.excilys.formation.exos.activity.MainActivity;
+import com.excilys.formation.exos.mapper.InputStreamToString;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * The task for the messages listing
+ * Server registration task
  */
-public class ListTask extends AsyncTask<String, String, String> {
+public class RegisterTask extends AsyncTask<String, String, String> {
 
-    private static final String TAG = ListTask.class.getSimpleName();
+    private static final String TAG = MessageTask.class.getSimpleName();
 
     private View view;
 
-    public ListTask(ListActivity act) {
-        view = act.findViewById(R.id.load);
+    public RegisterTask(MainActivity main) {
+        view = main.findViewById(R.id.load);
     }
 
     @Override
@@ -40,21 +44,34 @@ public class ListTask extends AsyncTask<String, String, String> {
 
     @Override
     protected String doInBackground(String... args) {
-        String result = "";
-
         // Get the user data
         String user = args[0];
         String pwd = args[1];
 
+        String result = "";
+
         HttpURLConnection conn = null;
         try {
-            // Open the url connection
-            String urlText = "https://training.loicortola.com/chat-rest/2.0/" +
-                    "messages?&limit=10&offset=0";
+            // Build the url connection
+            String urlText = "https://training.loicortola.com/chat-rest/2.0/register";
             URL url = new URL(urlText);
             conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            // Build the Json
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.accumulate(MainActivity.JSON_LOGIN, user);
+                jsonObject.accumulate(MainActivity.JSON_PWD, pwd);
+            } catch (JSONException e) {
+                Log.e(TAG, e.getMessage());
+            }
+            String json = jsonObject.toString();
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            out.write(json);
+            out.close();
 
             // Start the query
             conn.connect();

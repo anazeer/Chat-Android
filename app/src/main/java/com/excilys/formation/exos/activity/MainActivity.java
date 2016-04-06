@@ -11,18 +11,25 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.excilys.formation.exos.receiver.ParlezVousPowerReceiver;
-import com.excilys.formation.exos.task.ParlezVousTask;
+import com.excilys.formation.exos.receiver.PowerReceiver;
+import com.excilys.formation.exos.task.ConnectionTask;
 import com.excilys.formation.exos.R;
+import com.excilys.formation.exos.mapper.JsonParser;
+import com.excilys.formation.exos.task.RegisterTask;
 import com.excilys.formation.exos.validation.Validator;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 
@@ -35,15 +42,25 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences preferences;
 
-    private ParlezVousPowerReceiver receiver;
+    private PowerReceiver receiver;
+
+    private Menu menu;
 
     // ID
     public static final String USER_ID = "user_id";
     public static final String PWD_ID = "pwd_id";
 
     // Errors ID
-    private static final String USER_ERROR_ID = "user_error_id";
-    private static final String PWD_ERROR_ID = "pwd_error_id";
+    public static final String USER_ERROR_ID = "user_error_id";
+    public static final String PWD_ERROR_ID = "pwd_error_id";
+
+    // JSON ID
+    public static final String JSON_STATUS = "status";
+    public static final String JSON_MESSAGE = "message";
+    public static final String JSON_LOGIN = "login";
+    public static final String JSON_PWD = "password";
+    public static final String JSON_UUID = "uuid";
+    public static final String JSON_ATTACHMENTS = "attachments";
 
     // Input form
     private EditText userText;
@@ -56,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
     // Buttons
     private Button clearButton;
     private Button sendButton;
+    private Button registerButton;
+
+    private String user;
+    private String pwd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +89,10 @@ public class MainActivity extends AppCompatActivity {
         pwdErrorText = (TextView) findViewById(R.id.pwdError);
         clearButton = (Button) findViewById(R.id.clear);
         sendButton = (Button) findViewById(R.id.send);
+        registerButton = (Button) findViewById(R.id.register);
         clearButton.setOnClickListener(clearListener);
         sendButton.setOnClickListener(sendListener);
+        registerButton.setOnClickListener(registerListener);
         retrieveUser();
         setReceiver();
     }
@@ -85,16 +108,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Register the action power and sms receiver
+     * RegisterTask the action power and sms receiver
      */
     private void setReceiver() {
         IntentFilter filter1 = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
         IntentFilter filter2 = new IntentFilter(Intent.ACTION_POWER_DISCONNECTED);
         IntentFilter filter3 = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
-        receiver = new ParlezVousPowerReceiver();
+        receiver = new PowerReceiver();
         registerReceiver(receiver, filter1);
         registerReceiver(receiver, filter2);
         registerReceiver(receiver, filter3);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.register_menu, menu);
+        this.menu = menu;
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.register:
+                register();
+                return true;
+        }
+        return true;
     }
 
     @Override
@@ -164,11 +206,20 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * Save the user credentials in the preferences
-     * @param user the user name
-     * @param pwd the user password
+     * Listener for the register button
+     * Make the user registration
      */
-    private void saveUser(String user, String pwd) {
+    private View.OnClickListener registerListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            register();
+        }
+    };
+
+    /**
+     * Save the user credentials in the preferences
+     */
+    private void saveUser() {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(USER_ID, user);
         editor.putString(PWD_ID, pwd);
@@ -177,12 +228,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      *
-     * @param user the user name
-     * @param pwd the user password
      * @return the server response
      */
-    private String executeTask(String user, String pwd) {
-        ParlezVousTask task = new ParlezVousTask(MainActivity.this);
+    private String executeTask() {
+        ConnectionTask task = new ConnectionTask(MainActivity.this);
         String result = "";
         task.execute(user, pwd);
         try {
@@ -213,14 +262,13 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Analyze the server response and do the corresponding action
      * @param result the server result
-     * @param user the user name
-     * @param pwd the user password
      */
-    private void readServerResponse(String result, String user, String pwd) {
+    private void readServerResponse(String result) {
+        Map<String, String> infos = JsonParser.parseConnection(result);
         // The server response is positive
-        if (result.equals("true")) {
+        if ("200".equals(infos.get(JSON_STATUS))) {
             // Save user credentials
-            saveUser(user, pwd);
+            saveUser();
             Toast.makeText(MainActivity.this, MainActivity.this.getResources().getString(R.string.success), Toast.LENGTH_SHORT).show();
             // Access to the application
             access(user, pwd);
@@ -231,8 +279,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Connection done, show the connected activity
-     * @param user the user name
-     * @param pwd the user password
      */
     private void access(String user, String pwd) {
         Intent intent = new Intent(MainActivity.this, MenuActivity.class);
@@ -253,19 +299,60 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Check the user inputs and update the error text
+     * @return true if the inputs have been validated, false otherwise
+     */
+    private boolean checkInputs() {
+        // Get the user inputs
+        user = userText.getText().toString();
+        pwd = pwdText.getText().toString();
+        // Validate the inputs
+        List<String> errors = Validator.validateUserCredentials(user, pwd);
+        if (!errors.isEmpty()) {
+            showErrors(errors);
+            return false;
+        }
+        // Everything's good
+        userErrorText.setVisibility(View.GONE);
+        pwdErrorText.setVisibility(View.GONE);
+        return true;
+    }
+
+    /**
+     * Make the user registration
+     */
+    private void register() {
+        if (!checkInputs()) {
+            return;
+        }
+        RegisterTask task = new RegisterTask(MainActivity.this);
+        String result = "";
+        task.execute(user, pwd);
+        try {
+            result = task.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        Map<String, String> infos = JsonParser.parseConnection(result);
+        if ("200".equals(infos.get(JSON_STATUS))) {
+            Toast.makeText(this,
+                    getResources().getString(R.string.register_success),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this,
+                    getResources().getString(R.string.register_fail),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
      * Listener for the send button
      * Open the drawing activity
      */
     private View.OnClickListener sendListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            // Get the user inputs
-            String user = userText.getText().toString();
-            String pwd = pwdText.getText().toString();
-            // Validate the inputs
-            List<String> errors = Validator.validateUserCredentials(user, pwd);
-            if (!errors.isEmpty()) {
-                showErrors(errors);
+            if (!checkInputs()) {
                 return;
             }
             // Everything's good
@@ -278,9 +365,9 @@ public class MainActivity extends AppCompatActivity {
             }
             sendButton.setEnabled(false);
             // Connect to the server
-            String result = executeTask(user, pwd);
+            String result = executeTask();
             sendButton.setEnabled(true);
-            readServerResponse(result, user, pwd);
+            readServerResponse(result);
         }
     };
 }

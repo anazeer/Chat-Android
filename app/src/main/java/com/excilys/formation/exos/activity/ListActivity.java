@@ -10,12 +10,12 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-import com.excilys.formation.exos.mapper.StringToHashMapList;
+import com.excilys.formation.exos.mapper.JsonParser;
 import com.excilys.formation.exos.task.ListTask;
 import com.excilys.formation.exos.R;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -53,7 +53,7 @@ public class ListActivity extends Activity {
      * @param s the text from the server
      */
     private void updateMessages(String s) {
-        List<HashMap<String, String>> result = StringToHashMapList.convert(s, name, txt);
+        List<Map<String, String>> result = JsonParser.parseMessages(s, name, txt);
         ListAdapter adapter = new SimpleAdapter(this,
                 result,
                 android.R.layout.simple_expandable_list_item_2,

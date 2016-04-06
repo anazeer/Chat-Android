@@ -11,20 +11,23 @@ import com.excilys.formation.exos.activity.MainActivity;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
+import java.net.ProtocolException;
 import java.net.URL;
 
 /**
  * The task for the connection
  */
-public class ParlezVousTask extends AsyncTask<String, String, String> {
+public class ConnectionTask extends AsyncTask<String, String, String> {
 
-    private static final String TAG = ParlezVousTask.class.getSimpleName();
+    private static final String TAG = ConnectionTask.class.getSimpleName();
 
     private MainActivity main;
     private View view;
 
-    public ParlezVousTask(MainActivity main) {
+    public ConnectionTask(MainActivity main) {
         view = main.findViewById(R.id.load);
     }
 
@@ -44,17 +47,24 @@ public class ParlezVousTask extends AsyncTask<String, String, String> {
         String result = "";
 
         // Get the user datas
-        String user = args[0];
-        String pwd = args[1];
+        final String user = args[0];
+        final String pwd = args[1];
+
+        // Save the authentication credentials
+        Authenticator.setDefault(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(user, pwd.toCharArray());
+            }
+        });
 
         HttpURLConnection conn = null;
         try {
             // Open the url connection
-            String urlText = String.format
-                    ("http://formation-android-esaip.herokuapp.com/connect/%s/%s", user, pwd);
+            String urlText = "https://training.loicortola.com/chat-rest/2.0/connect";
             URL url = new URL(urlText);
+
             conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
+            conn.setRequestMethod("GET");
             conn.setDoInput(true);
 
             // Start the query
