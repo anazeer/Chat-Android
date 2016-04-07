@@ -3,19 +3,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textCapSentences|textMultiLine"
-        android:isScrollContainer="true"
-        android:singleLine="false"
-        android:minHeight="120dp"
-        android:minWidth="200dp"
-        android:maxLength="2000"
-        android:layout_centerInParent="true"
-        android:maxLines="4" />
-
     <ProgressBar
         android:id="@+id/load"
         android:layout_above="@+id/send_button"
@@ -26,12 +13,29 @@
         style="?android:attr/progressBarStyleHorizontal"
         />
 
+    <EditText
+        android:id="@+id/message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textCapSentences|textMultiLine"
+        android:isScrollContainer="true"
+        android:singleLine="false"
+        android:minWidth="200dp"
+        android:maxLines="4"
+        android:maxLength="2000"
+        android:layout_toLeftOf="@+id/send_button"
+        android:layout_toStartOf="@+id/send_button"
+        android:layout_alignParentBottom="true"/>
+
+
+
     <Button
         android:id="@+id/send_button"
         android:text="@string/send_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>

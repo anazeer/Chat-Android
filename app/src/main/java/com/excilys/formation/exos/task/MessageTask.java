@@ -30,8 +30,8 @@ public class MessageTask extends AsyncTask<String, String, String> {
 
     private View view;
 
-    public MessageTask(MessageActivity main) {
-        view = main.findViewById(R.id.load);
+    public MessageTask(View view) {
+        this.view = view;
     }
 
     @Override

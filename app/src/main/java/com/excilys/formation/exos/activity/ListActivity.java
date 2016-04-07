@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.excilys.formation.exos.adapter.MessageArrayAdapter;
 import com.excilys.formation.exos.model.Message;
@@ -49,7 +48,6 @@ public class ListActivity extends Activity {
         refreshButton.setOnClickListener(refreshListener);
         user = getIntent().getExtras().getString(MainActivity.USER_ID);
         pwd = getIntent().getExtras().getString(MainActivity.PWD_ID);
-
         messageArrayAdapter = new MessageArrayAdapter(this, R.layout.right_text);
         list.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         list.setAdapter(messageArrayAdapter);
@@ -100,7 +98,6 @@ public class ListActivity extends Activity {
             task.execute(user, pwd);
             try {
                 result = task.get();
-                Toast.makeText(ListActivity.this, "Refreshed", Toast.LENGTH_SHORT).show();
             } catch (InterruptedException | ExecutionException e) {
                 Log.e(TAG, e.getMessage());
             }
