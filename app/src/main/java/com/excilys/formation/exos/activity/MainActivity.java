@@ -27,7 +27,6 @@ import com.excilys.formation.exos.mapper.JsonParser;
 import com.excilys.formation.exos.task.RegisterTask;
 import com.excilys.formation.exos.validation.Validator;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -285,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(USER_ID, user);
         intent.putExtra(PWD_ID, pwd);
         MainActivity.this.startActivity(intent);
+        Log.e(TAG, "on start le menu");
     }
 
     /**
@@ -333,10 +333,15 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException | ExecutionException e) {
             Log.e(TAG, e.getMessage());
         }
+        Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
         Map<String, String> infos = JsonParser.parseConnection(result);
         if ("200".equals(infos.get(JSON_STATUS))) {
             Toast.makeText(this,
                     getResources().getString(R.string.register_success),
+                    Toast.LENGTH_SHORT).show();
+        } else if ("400".equals(infos.get(JSON_STATUS))) {
+            Toast.makeText(this,
+                    getResources().getString(R.string.register_exist),
                     Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this,
@@ -360,7 +365,9 @@ public class MainActivity extends AppCompatActivity {
             pwdErrorText.setVisibility(View.GONE);
             // Check for the connection
             if (!isOnline()) {
-                Toast.makeText(MainActivity.this, MainActivity.this.getResources().getString(R.string.network_error), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this,
+                        MainActivity.this.getResources().getString(R.string.network_error),
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
             sendButton.setEnabled(false);

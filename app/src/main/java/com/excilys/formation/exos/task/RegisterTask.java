@@ -7,6 +7,11 @@ import android.view.View;
 import com.excilys.formation.exos.R;
 import com.excilys.formation.exos.activity.MainActivity;
 import com.excilys.formation.exos.mapper.InputStreamToString;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,44 +53,32 @@ public class RegisterTask extends AsyncTask<String, String, String> {
         String user = args[0];
         String pwd = args[1];
 
-        String result = "";
+        // Build the json
+        String json = buildJSON(user, pwd);
 
-        HttpURLConnection conn = null;
+        // Prepare request parameter
+        String url = "https://training.loicortola.com/chat-rest/2.0/register";
+        OkHttpClient client = new OkHttpClient();
+        String postResponse = "";
+
+        // Do the POST request
         try {
-            // Build the url connection
-            String urlText = "https://training.loicortola.com/chat-rest/2.0/register";
-            URL url = new URL(urlText);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            // Build the Json
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.accumulate(MainActivity.JSON_LOGIN, user);
-                jsonObject.accumulate(MainActivity.JSON_PWD, pwd);
-            } catch (JSONException e) {
-                Log.e(TAG, e.getMessage());
-            }
-            String json = jsonObject.toString();
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
-            out.write(json);
-            out.close();
-
-            // Start the query
-            conn.connect();
-            InputStream is = new BufferedInputStream(conn.getInputStream());
-
-            // Convert the result
-            result = InputStreamToString.convert(is);
+            postResponse = RequestFactory.doPostRequest(client, url, json);
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
         }
-        return result;
+        return postResponse;
+    }
+
+    private String buildJSON(String user, String pwd) {
+        // Build the Json
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.accumulate(MainActivity.JSON_LOGIN, user);
+            jsonObject.accumulate(MainActivity.JSON_PWD, pwd);
+        } catch (JSONException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return jsonObject.toString();
     }
 }

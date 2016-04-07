@@ -1,19 +1,22 @@
 package com.excilys.formation.exos.activity;
 
 import android.app.Activity;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import com.excilys.formation.exos.adapter.MessageArrayAdapter;
+import com.excilys.formation.exos.model.Message;
 import com.excilys.formation.exos.mapper.JsonParser;
 import com.excilys.formation.exos.task.ListTask;
 import com.excilys.formation.exos.R;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +30,7 @@ public class ListActivity extends Activity {
 
     private ListView list;
     private Button refreshButton;
+    private MessageArrayAdapter messageArrayAdapter;
 
     // User credentials
     private String user;
@@ -45,21 +49,43 @@ public class ListActivity extends Activity {
         refreshButton.setOnClickListener(refreshListener);
         user = getIntent().getExtras().getString(MainActivity.USER_ID);
         pwd = getIntent().getExtras().getString(MainActivity.PWD_ID);
-        refreshButton.performClick(); // refresh the list the first time
+
+        messageArrayAdapter = new MessageArrayAdapter(this, R.layout.right_text);
+        list.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        list.setAdapter(messageArrayAdapter);
+
+        //to scroll the list view to bottom on data change
+        messageArrayAdapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                list.setSelection(messageArrayAdapter.getCount() - 1);
+            }
+        });
+
+        // refresh the list the first time
+        refreshButton.performClick();
     }
 
     /**
-     * Convert the server text into a ListAdapter and set it to the ListView
+     * Convert the server text into a list of Message and set it to the ListView
      * @param s the text from the server
      */
-    private void updateMessages(String s) {
+    private void updateList(String s) {
+        List<Message> messages = new ArrayList<>();
         List<Map<String, String>> result = JsonParser.parseMessages(s, name, txt);
-        ListAdapter adapter = new SimpleAdapter(this,
-                result,
-                android.R.layout.simple_expandable_list_item_2,
-                new String[] {name, txt},
-                new int[] {android.R.id.text1, android.R.id.text2});
-        list.setAdapter(adapter);
+        for( Map<String, String> map : result) {
+            String login = map.get(name);
+            String msg = map.get(txt);
+            Message message = new
+                    Message.Builder()
+                    .login(login)
+                    .message(msg)
+                    .user(user.equals(login))
+                    .build();
+            messages.add(message);
+        }
+        messageArrayAdapter.setChatList(messages);
     }
 
     /**
@@ -79,7 +105,7 @@ public class ListActivity extends Activity {
                 Log.e(TAG, e.getMessage());
             }
             refreshButton.setEnabled(true);
-            updateMessages(result);
+            updateList(result);
         }
     };
 }

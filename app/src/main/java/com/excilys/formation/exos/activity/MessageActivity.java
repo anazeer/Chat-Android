@@ -45,14 +45,26 @@ public class MessageActivity extends Activity {
 
     private void analyzeResult(String result) {
         Map<String, String> infos = JsonParser.parseConnection(result);
-        if ("200".equals(infos.get(MainActivity.JSON_MESSAGE))) {
-            Toast.makeText(this,
-                    "Message posté avec succès !",
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this,
-                    "Erreur d'envoi de message " + infos.get(MainActivity.JSON_STATUS),
-                    Toast.LENGTH_SHORT).show();
+        switch (infos.get((MainActivity.JSON_STATUS))) {
+            case "200":
+                Toast.makeText(this,
+                        "Message posté avec succès !",
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case "400":
+                Toast.makeText(this,
+                        "Le message a déjà été posté",
+                        Toast.LENGTH_SHORT).show();
+                break;
+            case "401":
+                Toast.makeText(this,
+                        "Nom d'utilisation ou mot de passe incorrect",
+                        Toast.LENGTH_SHORT).show();
+            default:
+                Toast.makeText(this,
+                        "Erreur message",
+                        Toast.LENGTH_SHORT).show();
+                break;
         }
     }
 
@@ -66,7 +78,8 @@ public class MessageActivity extends Activity {
             msg = text.getText().toString();
             if (msg.trim().isEmpty()) {
                 Toast.makeText(MessageActivity.this,
-                        "The message shouldn't be empty", Toast.LENGTH_SHORT).show();
+                        "Le message ne doit pas être vide",
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
             MessageTask task = new MessageTask(MessageActivity.this);

@@ -50,7 +50,7 @@ public class ListTask extends AsyncTask<String, String, String> {
         try {
             // Open the url connection
             String urlText = "https://training.loicortola.com/chat-rest/2.0/" +
-                    "messages?&limit=10&offset=0";
+                    "messages?&limit=100&offset=0";
             URL url = new URL(urlText);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -59,6 +59,9 @@ public class ListTask extends AsyncTask<String, String, String> {
             // Start the query
             conn.connect();
             InputStream is = new BufferedInputStream(conn.getInputStream());
+
+            // Get and analyze the response
+            int response = conn.getResponseCode();
 
             // Convert the result
             result = InputStreamToString.convert(is);
