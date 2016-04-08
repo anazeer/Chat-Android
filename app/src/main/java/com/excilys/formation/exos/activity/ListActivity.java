@@ -42,6 +42,7 @@ public class ListActivity extends Activity {
     // HashMap keys
     String name = "user";
     String txt = "txt";
+    String img = "img";
 
     private Timer timer;
     private RefreshHandler handler;
@@ -128,15 +129,17 @@ public class ListActivity extends Activity {
      */
     private List<Message> getList(String json) {
         List<Message> messages = new ArrayList<>();
-        List<Map<String, String>> result = JsonParser.parseMessages(json, name, txt);
+        List<Map<String, String>> result = JsonParser.parseMessages(json, name, txt, img);
         for (Map<String, String> map : result) {
             String login = map.get(name);
             String msg = map.get(txt);
+            String image = map.get(img);
             Message message = new
                     Message.Builder()
                     .login(login)
                     .message(msg)
                     .user(user.equals(login))
+                    .image(image)
                     .build();
             messages.add(message);
         }

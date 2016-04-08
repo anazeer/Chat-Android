@@ -45,9 +45,11 @@ public class MessageTask extends AsyncTask<String, String, String> {
         String user = args[0];
         String pwd = args[1];
         String msg = args[2];
+        String mime = args[3];
+        String base64 = args[4];
 
         // Build the Json
-        String json = buildJSON(user, msg);
+        String json = buildJSON(user, msg, mime, base64);
 
         // Prepare request parameter
         String url = "https://training.loicortola.com/chat-rest/2.0/messages";
@@ -63,7 +65,7 @@ public class MessageTask extends AsyncTask<String, String, String> {
         return postResponse;
     }
 
-    private String buildJSON(String user, String msg) {
+    private String buildJSON(String user, String msg, String mime, String base64) {
         JSONObject jsonObject = new JSONObject();
         try {
             // Data
@@ -73,14 +75,15 @@ public class MessageTask extends AsyncTask<String, String, String> {
 
             // Images
             JSONObject image = new JSONObject();
-            image.put(MainActivity.JSON_MIME, "");
-            image.put(MainActivity.JSON_DATA, "");
+            image.put(MainActivity.JSON_MIME, mime);
+            image.put(MainActivity.JSON_DATA, base64);
             JSONArray attachment = new JSONArray();
             attachment.put(image);
             jsonObject.put(MainActivity.JSON_ATTACHMENTS, attachment);
         } catch (JSONException e) {
             Log.e(TAG, e.getMessage());
         }
+        Log.d(TAG, "JSON : " + jsonObject.toString());
         return jsonObject.toString();
     }
 }

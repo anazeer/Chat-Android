@@ -46,7 +46,7 @@ public class JsonParser {
      * @param key2 the second key
      * @return the HashMap containing the login and the message
      */
-    public static List<Map<String, String>> parseMessages(String json, String key1, String key2) {
+    public static List<Map<String, String>> parseMessages(String json, String key1, String key2, String key3) {
         Map<String, String> element;
         List<Map<String, String>> result = new ArrayList<>();
         try {
@@ -56,11 +56,14 @@ public class JsonParser {
                 JSONObject obj = reader.getJSONObject(i);
                 String login = obj.getString(MainActivity.JSON_LOGIN);
                 String message = obj.getString(MainActivity.JSON_MESSAGE);
+                //JSONObject imageObject = obj.getJSONObject(MainActivity.JSON_IMAGES);
+                //String image = imageObject.getString();
                 //String uuid = obj.getString(MainActivity.JSON_UUID);
                 //String status = obj.getString(MainActivity.JSON_STATUS);
                 element = new HashMap<>();
                 element.put(key1, login);
                 element.put(key2, message);
+                //element.put(key3, image);
                 result.add(element);
             }
         } catch (JSONException e) {

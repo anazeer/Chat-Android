@@ -62,8 +62,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String JSON_ATTACHMENTS = "attachments";
     public static final String JSON_MIME = "mimeType";
     public static final String JSON_DATA = "data";
+    public static final String JSON_IMAGES = "images";
 
-// Input form
+    // Input form
     private EditText userText;
     private EditText pwdText;
 

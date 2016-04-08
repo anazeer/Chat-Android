@@ -9,6 +9,7 @@ public class Message {
     private String login;
     private String message;
     private boolean user;
+    private String image;
 
     public Message() {
         super();
@@ -24,6 +25,10 @@ public class Message {
 
     public boolean isUser() {
         return user;
+    }
+
+    public String getImage() {
+        return image;
     }
 
     /**
@@ -49,6 +54,11 @@ public class Message {
 
         public Builder user(boolean user) {
             chat.user = user;
+            return this;
+        }
+
+        public Builder image(String image) {
+            chat.image = image;
             return this;
         }
 
