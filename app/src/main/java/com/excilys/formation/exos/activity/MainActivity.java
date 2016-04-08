@@ -21,10 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.excilys.formation.exos.receiver.PowerReceiver;
-import com.excilys.formation.exos.task.ConnectionTask;
+import com.excilys.formation.exos.request.task.ConnectionTask;
 import com.excilys.formation.exos.R;
 import com.excilys.formation.exos.mapper.JsonParser;
-import com.excilys.formation.exos.task.RegisterTask;
+import com.excilys.formation.exos.request.task.RegisterTask;
 import com.excilys.formation.exos.validation.Validator;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Menu menu;
 
-    // ID
+    // Preferences ID
     public static final String USER_ID = "user_id";
     public static final String PWD_ID = "pwd_id";
 
@@ -60,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
     public static final String JSON_PWD = "password";
     public static final String JSON_UUID = "uuid";
     public static final String JSON_ATTACHMENTS = "attachments";
+    public static final String JSON_MIME = "mimeType";
+    public static final String JSON_DATA = "data";
 
-    // Input form
+// Input form
     private EditText userText;
     private EditText pwdText;
 
@@ -74,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private Button sendButton;
     private Button registerButton;
 
+    // User inputs
     private String user;
     private String pwd;
 
@@ -82,18 +85,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.form_layout);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        userText = (EditText) findViewById(R.id.user);
-        pwdText = (EditText) findViewById(R.id.pwd);
-        userErrorText = (TextView) findViewById(R.id.userError);
-        pwdErrorText = (TextView) findViewById(R.id.pwdError);
+        initButtons();
+        initTextViews();
+        retrieveUser();
+        setReceiver();
+    }
+
+    /**
+     * Initialize the buttons
+     */
+    private void initButtons() {
         clearButton = (Button) findViewById(R.id.clear);
         sendButton = (Button) findViewById(R.id.send);
         registerButton = (Button) findViewById(R.id.register);
         clearButton.setOnClickListener(clearListener);
         sendButton.setOnClickListener(sendListener);
         registerButton.setOnClickListener(registerListener);
-        retrieveUser();
-        setReceiver();
+    }
+
+    /**
+     * Initialize the text views
+     */
+    private void initTextViews() {
+        userText = (EditText) findViewById(R.id.user);
+        pwdText = (EditText) findViewById(R.id.pwd);
+        userErrorText = (TextView) findViewById(R.id.userError);
+        pwdErrorText = (TextView) findViewById(R.id.pwdError);
     }
 
     /**
@@ -230,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
      * @return the server response
      */
     private String executeTask() {
-        ConnectionTask task = new ConnectionTask(MainActivity.this);
+        ConnectionTask task = new ConnectionTask(MainActivity.this.findViewById(R.id.load));
         String result = "";
         task.execute(user, pwd);
         try {
@@ -284,7 +301,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(USER_ID, user);
         intent.putExtra(PWD_ID, pwd);
         MainActivity.this.startActivity(intent);
-        Log.e(TAG, "on start le menu");
     }
 
     /**
@@ -318,6 +334,31 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private String executeRegisterTask() {
+        String result = "";
+        RegisterTask task = new RegisterTask(MainActivity.this.findViewById(R.id.load));
+        task.execute(user, pwd);
+        try {
+            result = task.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Get a message depending on the server status response
+     * @param status the server status response
+     * @return the corresponding personalized message
+     */
+    private String getStatusText(String status) {
+        switch (status) {
+            case "200": return getResources().getString(R.string.register_success);
+            case "400": return getResources().getString(R.string.register_exist);
+            default:    return getResources().getString(R.string.register_fail);
+        }
+    }
+
     /**
      * Make the user registration
      */
@@ -325,29 +366,10 @@ public class MainActivity extends AppCompatActivity {
         if (!checkInputs()) {
             return;
         }
-        RegisterTask task = new RegisterTask(MainActivity.this);
-        String result = "";
-        task.execute(user, pwd);
-        try {
-            result = task.get();
-        } catch (InterruptedException | ExecutionException e) {
-            Log.e(TAG, e.getMessage());
-        }
+        String json = executeRegisterTask();
+        Map<String, String> infos = JsonParser.parseConnection(json);
+        String result = getStatusText(infos.get(MainActivity.JSON_STATUS));
         Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
-        Map<String, String> infos = JsonParser.parseConnection(result);
-        if ("200".equals(infos.get(JSON_STATUS))) {
-            Toast.makeText(this,
-                    getResources().getString(R.string.register_success),
-                    Toast.LENGTH_SHORT).show();
-        } else if ("400".equals(infos.get(JSON_STATUS))) {
-            Toast.makeText(this,
-                    getResources().getString(R.string.register_exist),
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this,
-                    getResources().getString(R.string.register_fail),
-                    Toast.LENGTH_SHORT).show();
-        }
     }
 
     /**

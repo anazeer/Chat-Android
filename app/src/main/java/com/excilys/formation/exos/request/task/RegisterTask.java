@@ -1,36 +1,28 @@
-package com.excilys.formation.exos.task;
+package com.excilys.formation.exos.request.task;
 
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 
-import com.excilys.formation.exos.R;
 import com.excilys.formation.exos.activity.MainActivity;
-import com.excilys.formation.exos.activity.MessageActivity;
-import com.excilys.formation.exos.mapper.InputStreamToString;
+import com.excilys.formation.exos.request.RequestFactory;
 import com.squareup.okhttp.OkHttpClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.UUID;
 
 /**
- * The task for the sending messages
+ * Server registration task
  */
-public class MessageTask extends AsyncTask<String, String, String> {
+public class RegisterTask extends AsyncTask<String, String, String> {
 
     private static final String TAG = MessageTask.class.getSimpleName();
 
     private View view;
 
-    public MessageTask(View view) {
+    public RegisterTask(View view) {
         this.view = view;
     }
 
@@ -50,13 +42,12 @@ public class MessageTask extends AsyncTask<String, String, String> {
         // Get the user data
         String user = args[0];
         String pwd = args[1];
-        String msg = args[2];
 
-        // Build the Json
-        String json = buildJSON(user, msg);
+        // Build the json
+        String json = buildJSON(user, pwd);
 
         // Prepare request parameter
-        String url = "https://training.loicortola.com/chat-rest/2.0/messages";
+        String url = "https://training.loicortola.com/chat-rest/2.0/register";
         OkHttpClient client = new OkHttpClient();
         String postResponse = "";
 
@@ -69,13 +60,12 @@ public class MessageTask extends AsyncTask<String, String, String> {
         return postResponse;
     }
 
-    private String buildJSON(String user, String msg) {
+    private String buildJSON(String user, String pwd) {
+        // Build the Json
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.accumulate(MainActivity.JSON_UUID, UUID.randomUUID().toString());
             jsonObject.accumulate(MainActivity.JSON_LOGIN, user);
-            jsonObject.accumulate(MainActivity.JSON_MESSAGE, msg);
-            //jsonObject.accumulate(MainActivity.JSON_ATTACHMENTS, "[]");
+            jsonObject.accumulate(MainActivity.JSON_PWD, pwd);
         } catch (JSONException e) {
             Log.e(TAG, e.getMessage());
         }

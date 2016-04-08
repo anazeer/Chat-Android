@@ -1,39 +1,31 @@
-package com.excilys.formation.exos.task;
+package com.excilys.formation.exos.request.task;
 
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 
-import com.excilys.formation.exos.R;
 import com.excilys.formation.exos.activity.MainActivity;
-import com.excilys.formation.exos.mapper.InputStreamToString;
-import com.squareup.okhttp.MediaType;
+import com.excilys.formation.exos.request.RequestFactory;
 import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.UUID;
 
 /**
- * Server registration task
+ * The task for the sending messages
  */
-public class RegisterTask extends AsyncTask<String, String, String> {
+public class MessageTask extends AsyncTask<String, String, String> {
 
     private static final String TAG = MessageTask.class.getSimpleName();
 
     private View view;
 
-    public RegisterTask(MainActivity main) {
-        view = main.findViewById(R.id.load);
+    public MessageTask(View view) {
+        this.view = view;
     }
 
     @Override
@@ -52,12 +44,13 @@ public class RegisterTask extends AsyncTask<String, String, String> {
         // Get the user data
         String user = args[0];
         String pwd = args[1];
+        String msg = args[2];
 
-        // Build the json
-        String json = buildJSON(user, pwd);
+        // Build the Json
+        String json = buildJSON(user, msg);
 
         // Prepare request parameter
-        String url = "https://training.loicortola.com/chat-rest/2.0/register";
+        String url = "https://training.loicortola.com/chat-rest/2.0/messages";
         OkHttpClient client = new OkHttpClient();
         String postResponse = "";
 
@@ -70,12 +63,21 @@ public class RegisterTask extends AsyncTask<String, String, String> {
         return postResponse;
     }
 
-    private String buildJSON(String user, String pwd) {
-        // Build the Json
+    private String buildJSON(String user, String msg) {
         JSONObject jsonObject = new JSONObject();
         try {
+            // Data
+            jsonObject.accumulate(MainActivity.JSON_UUID, UUID.randomUUID().toString());
             jsonObject.accumulate(MainActivity.JSON_LOGIN, user);
-            jsonObject.accumulate(MainActivity.JSON_PWD, pwd);
+            jsonObject.accumulate(MainActivity.JSON_MESSAGE, msg);
+
+            // Images
+            JSONObject image = new JSONObject();
+            image.put(MainActivity.JSON_MIME, "");
+            image.put(MainActivity.JSON_DATA, "");
+            JSONArray attachment = new JSONArray();
+            attachment.put(image);
+            jsonObject.put(MainActivity.JSON_ATTACHMENTS, attachment);
         } catch (JSONException e) {
             Log.e(TAG, e.getMessage());
         }

@@ -27,4 +27,10 @@
     <string name="register_success">Inscription réussie !</string>
     <string name="register_fail">Echec de l\'inscription</string>
     <string name="register_exist">Cet utilisateur existe déjà</string>
+    <string name="msg_success">"Message posté avec succès !"</string>
+    <string name="msg_exist">Le message a déjà été posté</string>
+    <string name="msg_illegal">Nom d\'utilisateur ou mot de passe incorrect</string>
+    <string name="msg_failure">Erreur message</string>
+    <string name="empty_form_error">Le champ ne doit pas être vide</string>
+    <string name="send_descr">Envoyer un message</string>
 </resources>

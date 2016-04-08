@@ -4,20 +4,21 @@ import android.app.Activity;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.AbsListView;
-import android.widget.Button;
 import android.widget.ListView;
 
-import com.excilys.formation.exos.adapter.MessageArrayAdapter;
+import com.excilys.formation.exos.adapter.MessageAdapter;
+import com.excilys.formation.exos.handler.RefreshHandler;
 import com.excilys.formation.exos.model.Message;
 import com.excilys.formation.exos.mapper.JsonParser;
-import com.excilys.formation.exos.task.ListTask;
+import com.excilys.formation.exos.request.task.ListTask;
 import com.excilys.formation.exos.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -27,9 +28,12 @@ public class ListActivity extends Activity {
 
     private static final String TAG = ListActivity.class.getSimpleName();
 
-    private ListView list;
-    private Button refreshButton;
-    private MessageArrayAdapter messageArrayAdapter;
+    // Pagination parameters
+    private static final String limit = "100";
+    private static final String offset = "0";
+
+    private ListView listView;
+    private MessageAdapter messageAdapter;
 
     // User credentials
     private String user;
@@ -39,40 +43,93 @@ public class ListActivity extends Activity {
     String name = "user";
     String txt = "txt";
 
+    private Timer timer;
+    private RefreshHandler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_layout);
-        list = (ListView) findViewById(R.id.list);
-        refreshButton = (Button) findViewById(R.id.refresh_button);
-        refreshButton.setOnClickListener(refreshListener);
-        user = getIntent().getExtras().getString(MainActivity.USER_ID);
-        pwd = getIntent().getExtras().getString(MainActivity.PWD_ID);
-        messageArrayAdapter = new MessageArrayAdapter(this, R.layout.right_text);
-        list.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        list.setAdapter(messageArrayAdapter);
+        getExtras();
+        initMessageAdapter();
+        initListView();
+        handler = new RefreshHandler();
+    }
 
-        //to scroll the list view to bottom on data change
-        messageArrayAdapter.registerDataSetObserver(new DataSetObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                list.setSelection(messageArrayAdapter.getCount() - 1);
-            }
-        });
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (timer != null) {
+            timer.cancel();
+            timer.purge();
+            timer = null;
+        }
+    }
 
-        // refresh the list the first time
-        refreshButton.performClick();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (timer == null) {
+            initRefreshTimer();
+        }
     }
 
     /**
-     * Convert the server text into a list of Message and set it to the ListView
-     * @param s the text from the server
+     * Get the intent extras
      */
-    private void updateList(String s) {
+    private void getExtras() {
+        user = getIntent().getExtras().getString(MainActivity.USER_ID);
+        pwd = getIntent().getExtras().getString(MainActivity.PWD_ID);}
+
+    /**
+     * Initialize the listView
+     */
+    private void initListView() {
+        listView = (ListView) findViewById(R.id.list);
+        listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        listView.setAdapter(messageAdapter);
+    }
+
+    /**
+     * Initialize the message adapter
+     */
+    private void initMessageAdapter() {
+        messageAdapter = new MessageAdapter(this, R.layout.right_text);
+        //to scroll the listView view to bottom on data change
+        messageAdapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                listView.setSelection(messageAdapter.getCount() - 1);
+            }
+        });
+    }
+
+    /**
+     * Initialize the timer
+     */
+    private void initRefreshTimer() {
+        final TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                android.os.Message message = handler.obtainMessage();
+                message.obj = ListActivity.this;
+                handler.sendMessage(message);
+            }
+        };
+        timer = new Timer();
+        timer.schedule(task, 0, 1000);
+    }
+
+    /**
+     * Convert the server text into a list of Message
+     * @param json the text from the server
+     * @return the list containing the server messages
+     */
+    private List<Message> getList(String json) {
         List<Message> messages = new ArrayList<>();
-        List<Map<String, String>> result = JsonParser.parseMessages(s, name, txt);
-        for( Map<String, String> map : result) {
+        List<Map<String, String>> result = JsonParser.parseMessages(json, name, txt);
+        for (Map<String, String> map : result) {
             String login = map.get(name);
             String msg = map.get(txt);
             Message message = new
@@ -83,26 +140,31 @@ public class ListActivity extends Activity {
                     .build();
             messages.add(message);
         }
-        messageArrayAdapter.setChatList(messages);
+        return messages;
     }
 
     /**
-     * Listener for the refresh button
+     * Execute the list task (get the messages from the server
+     * @return the server json response
      */
-    private View.OnClickListener refreshListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            String result = "";
-            ListTask task = new ListTask(ListActivity.this);
-            refreshButton.setEnabled(false);
-            task.execute(user, pwd);
-            try {
-                result = task.get();
-            } catch (InterruptedException | ExecutionException e) {
-                Log.e(TAG, e.getMessage());
-            }
-            refreshButton.setEnabled(true);
-            updateList(result);
+    private String executeTask() {
+        String result = "";
+        ListTask task = new ListTask();
+        task.execute(user, pwd, limit, offset);
+        try {
+            result = task.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, e.getMessage());
         }
-    };
+        return result;
+    }
+
+    /**
+     * Refresh the messages from the server
+     */
+    public void refresh() {
+        String json = executeTask();
+        List<Message> messages = getList(json);
+        messageAdapter.setChatList(messages);
+    }
 }

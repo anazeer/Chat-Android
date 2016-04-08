@@ -8,32 +8,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.excilys.formation.exos.R;
 import com.excilys.formation.exos.activity.MainActivity;
 import com.excilys.formation.exos.mapper.JsonParser;
-import com.excilys.formation.exos.task.MessageTask;
+import com.excilys.formation.exos.request.task.MessageTask;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
- *
+ * Message sending fragment
  */
 public class SendFragment extends Fragment {
 
     private static final String TAG = SendFragment.class.getSimpleName();
 
     private EditText text;
-    private Button sendButton;
+    private ImageButton sendButton;
 
     // User credentials
     private String user;
     private String pwd;
-
-    // The message from EditText
-    private String msg;
 
     private View view;
 
@@ -43,7 +41,7 @@ public class SendFragment extends Fragment {
         View view = inflater.inflate(R.layout.message_layout,
                 container, false);
         text = (EditText) view.findViewById(R.id.message);
-        sendButton = (Button) view.findViewById(R.id.send_button);
+        sendButton = (ImageButton) view.findViewById(R.id.send_button);
         sendButton.setOnClickListener(sendListener);
         user = getActivity().getIntent().getExtras().getString(MainActivity.USER_ID);
         pwd = getActivity().getIntent().getExtras().getString(MainActivity.PWD_ID);
@@ -51,30 +49,44 @@ public class SendFragment extends Fragment {
         return view;
     }
 
-    private void analyzeResult(String result) {
-        Map<String, String> infos = JsonParser.parseConnection(result);
-        switch (infos.get((MainActivity.JSON_STATUS))) {
-            case "200":
-                Toast.makeText(getActivity(),
-                        "Message posté avec succès !",
-                        Toast.LENGTH_SHORT).show();
-                text.setText("");
-                break;
-            case "400":
-                Toast.makeText(getActivity(),
-                        "Le message a déjà été posté",
-                        Toast.LENGTH_SHORT).show();
-                break;
-            case "401":
-                Toast.makeText(getActivity(),
-                        "Nom d'utilisation ou mot de passe incorrect",
-                        Toast.LENGTH_SHORT).show();
-            default:
-                Toast.makeText(getActivity(),
-                        "Erreur message",
-                        Toast.LENGTH_SHORT).show();
-                break;
+    /**
+     * Analyze the server response (parsing + status checking) and show the result
+     * @param json the server response
+     */
+    private void analyzeResult(String json) {
+        Map<String, String> infos = JsonParser.parseConnection(json);
+        String status = infos.get((MainActivity.JSON_STATUS));
+        String result = getStatusText(status);
+        Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
+        text.setText("");
+    }
+
+    /**
+     * Get a message depending on the server status response
+     * @param status the server status response
+     * @return the corresponding personalized message
+     */
+    private String getStatusText(String status) {
+        switch (status) {
+            case "200": return getResources().getString(R.string.msg_success);
+            case "400": return getResources().getString(R.string.msg_exist);
+            case "401": return getResources().getString(R.string.msg_illegal);
+            default:    return getResources().getString(R.string.msg_failure);
         }
+    }
+
+    private String executeTask(String msg) {
+        String result = "";
+        MessageTask task = new MessageTask(view.findViewById(R.id.load));
+        sendButton.setEnabled(false);
+        task.execute(user, pwd, msg);
+        sendButton.setEnabled(true);
+        try {
+            result = task.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return result;
     }
 
     /**
@@ -84,24 +96,15 @@ public class SendFragment extends Fragment {
     private View.OnClickListener sendListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            msg = text.getText().toString();
+            String msg = text.getText().toString();
             if (msg.trim().isEmpty()) {
                 Toast.makeText(SendFragment.this.getActivity(),
-                        "Le message ne doit pas être vide",
+                        getResources().getString(R.string.empty_form_error),
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-            MessageTask task = new MessageTask(view.findViewById(R.id.load));
-            sendButton.setEnabled(false);
-            task.execute(user, pwd, msg);
-            sendButton.setEnabled(true);
-            String result = "";
-            try {
-                result = task.get();
-                analyzeResult(result);
-            } catch (InterruptedException | ExecutionException e) {
-                Log.e(TAG, e.getMessage());
-            }
+            String result = executeTask(msg);
+            analyzeResult(result);
         }
     };
 }

@@ -1,7 +1,6 @@
 package com.excilys.formation.exos.view;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -15,21 +14,24 @@ import java.util.ArrayList;
 /**
  * The view for drawing circles
  */
-public class ParlezVousView extends SurfaceView {
+public class CircleView extends SurfaceView {
 
-    private final Paint paint = new Paint();
     private static final int RADIUS = 50;
-    private static final int MAX_CIRCLES = 3;
+    private static final int MAX_CIRCLES = 5;
     private static final long DOUBLE_CLICK_TIME_DELTA = 300;
+
+    private final Paint paint;
 
     private boolean onMove;
     private int dragCircleIndex;
     private long lastClickTime;
 
+    // List of circles
     ArrayList<Point> circles = new ArrayList<>(MAX_CIRCLES);
 
-    public ParlezVousView(Context context, AttributeSet attrs) {
+    public CircleView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        paint = new Paint();
         paint.setColor(Color.RED);
         paint.setStyle(Paint.Style.FILL);
     }
@@ -52,8 +54,25 @@ public class ParlezVousView extends SurfaceView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        // Draw all the circles
         for (Point p : circles) {
             canvas.drawCircle(p.x, p.y, RADIUS, paint);
+        }
+    }
+
+    /**
+     * Remove the circle if it has been double tapped
+     * @param circle the clicked circle
+     * @return true if the circle has been removed
+     */
+    private boolean removeCircleIfDoubleTap(Point circle) {
+        long clickTime = System.currentTimeMillis();
+        if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
+            circles.set(circles.indexOf(circle), new Point(-50, -50));
+            return true;
+        } else {
+            lastClickTime = clickTime;
+            return false;
         }
     }
 
@@ -67,16 +86,11 @@ public class ParlezVousView extends SurfaceView {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (circle != null) {
-                    // If double tap, remove the circle
-                    long clickTime = System.currentTimeMillis();
-                    if (clickTime - lastClickTime < DOUBLE_CLICK_TIME_DELTA) {
-                        circles.set(circles.indexOf(circle), new Point(-50, -50));
-                        return true;
+                    if (!removeCircleIfDoubleTap(circle)) {
+                        // Make drag and drop possible
+                        onMove = true;
+                        dragCircleIndex = circles.indexOf(circle);
                     }
-                    // Make drag and drop possible
-                    onMove = true;
-                    dragCircleIndex = circles.indexOf(circle);
-                    lastClickTime = clickTime;
                 } else {
                     onMove = false;
                 }

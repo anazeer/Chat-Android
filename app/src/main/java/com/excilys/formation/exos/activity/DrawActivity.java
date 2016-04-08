@@ -7,7 +7,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.excilys.formation.exos.view.ParlezVousView;
+import com.excilys.formation.exos.view.CircleView;
 import com.excilys.formation.exos.R;
 
 /**
@@ -15,7 +15,7 @@ import com.excilys.formation.exos.R;
  */
 public class DrawActivity extends Activity {
 
-    private ParlezVousView view;
+    private CircleView view;
 
     private Menu menu;
 
@@ -23,7 +23,7 @@ public class DrawActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.draw_layout);
-        view = (ParlezVousView) findViewById(R.id.circle);
+        view = (CircleView) findViewById(R.id.circle);
     }
 
     @Override

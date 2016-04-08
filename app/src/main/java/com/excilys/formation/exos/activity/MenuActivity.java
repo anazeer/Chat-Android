@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,8 +17,6 @@ import com.excilys.formation.exos.R;
  * Menu activity once connected
  */
 public class MenuActivity extends Activity {
-
-    private static final String TAG = MenuActivity.class.getSimpleName();
 
     private Button drawButton;
     private Button listButton;

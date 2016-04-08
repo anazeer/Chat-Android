@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adapter for
+ * Adapter for a message
  */
-public class MessageArrayAdapter extends ArrayAdapter<Message> {
+public class MessageAdapter extends ArrayAdapter<Message> {
 
     private TextView chatText;
     private List<Message> messageList = new ArrayList<>();
@@ -28,7 +28,7 @@ public class MessageArrayAdapter extends ArrayAdapter<Message> {
         super.add(object);
     }
 
-    public MessageArrayAdapter(Context context, int textViewResourceId) {
+    public MessageAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
         this.context = context;
     }
@@ -39,7 +39,12 @@ public class MessageArrayAdapter extends ArrayAdapter<Message> {
     }
 
     public void setChatList(List<Message> messageList) {
+        int oldCount = this.messageList.size();
+        int newCount = messageList.size();
         this.messageList = messageList;
+        if (oldCount != newCount) {
+            notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -52,12 +57,14 @@ public class MessageArrayAdapter extends ArrayAdapter<Message> {
         Message chat = getItem(position);
         LayoutInflater inflater = (LayoutInflater) this.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // The message is on the right if it has been send from the current user
         if (chat.isUser()) {
             convertView = inflater.inflate(R.layout.right_text, parent, false);
         } else {
             convertView = inflater.inflate(R.layout.left_text, parent, false);
         }
         chatText = (TextView) convertView.findViewById(R.id.msg);
+        // Output the login before the message
         String msg = chat.getLogin() + "\n" + chat.getMessage();
         chatText.setText(msg);
         return convertView;
