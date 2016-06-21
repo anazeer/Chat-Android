@@ -9,19 +9,17 @@
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        style="?android:attr/progressBarStyleHorizontal"
-        />
+        android:visibility="gone" />
 
     <EditText
         android:id="@+id/message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="textCapSentences|textMultiLine"
+        android:inputType="textCapSentences"
+        android:hint="@string/enter_message"
         android:isScrollContainer="true"
-        android:singleLine="false"
-        android:maxLines="4"
         android:maxLength="2000"
+        android:imeOptions="actionDone"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
@@ -36,8 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        style="?android:attr/borderlessButtonStyle" />
+        android:layout_alignParentBottom="true" />
 
     <Button
         android:id="@+id/browse"

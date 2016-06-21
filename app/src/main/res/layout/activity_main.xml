@@ -9,6 +9,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".activity.MainActivity">
 
-    <include layout="@layout/form_layout"/>
+    <include layout="@layout/form_layout" />
 
 </RelativeLayout>

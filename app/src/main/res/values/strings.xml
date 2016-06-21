@@ -1,5 +1,12 @@
 <resources>
-    <string name="app_name">Exos</string>
+    <string name="app_name">Formation</string>
+
+    <string name="A">A</string>
+    <string name="B">B</string>
+    <string name="C">C</string>
+    <string name="D">D</string>
+    <string name="E">E</string>
+
     <string name="action_settings">Settings</string>
     <string name="title">Formulaire de connexion</string>
     <string name="user">Nom d\'utilisateur</string>
@@ -9,7 +16,7 @@
     <string name="clear">Vider</string>
     <string name="send">Envoyer</string>
     <string name="good">Données envoyées avec succès !</string>
-    <string name="success">Connection réussie !</string>
+    <string name="conn_success">Connection réussie !</string>
     <string name="fail">Utilisateur non trouvé</string>
     <string name="hello">Hello %s!</string>
     <string name="disconnect">Déconnexion</string>
@@ -27,10 +34,26 @@
     <string name="register_success">Inscription réussie !</string>
     <string name="register_fail">Echec de l\'inscription</string>
     <string name="register_exist">Cet utilisateur existe déjà</string>
+    <string name="register_null">Erreur serveur</string>
     <string name="msg_success">"Message posté avec succès !"</string>
     <string name="msg_exist">Le message a déjà été posté</string>
     <string name="msg_illegal">Nom d\'utilisateur ou mot de passe incorrect</string>
     <string name="msg_failure">Erreur message</string>
+    <string name="msg_big">Image trop lourde</string>
+    <string name="enter_message">Entrez un message</string>
     <string name="empty_form_error">Le champ ne doit pas être vide</string>
     <string name="send_descr">Envoyer un message</string>
+    <string name="welcome">Bienvenue %s !</string>
+
+    <string name="browse">Parcourir</string>
+    <string name="image_empty">Aucune image n\'a été sélectionnée</string>
+    <string name="image_error">Erreur image</string>
+
+    <string name="join">Joindre</string>
+
+    <string name="register_url">https://training.loicortola.com/chat-rest/2.0/register</string>
+    <string name="login_url">https://training.loicortola.com/chat-rest/2.0/connect</string>
+    <string name="list_url">https://training.loicortola.com/chat-rest/2.0/messages?&amp;limit=%1$s&amp;offset=%2$s</string>
+    <string name="send_url">https://training.loicortola.com/chat-rest/2.0/messages</string>
+
 </resources>
